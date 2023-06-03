@@ -141,5 +141,5 @@ SPECTACULAR_SETTINGS = {
     "TITLE": "Todo App",
     "DESCRIPTION": "Multiple todo list to enhance your productivity (or your TDAH)",
     "VERSION": "1.0.0",
-    "SERVE_PERMISSIONS": ["rest_framework.permissions.IsAuthenticated"],
+    #"SERVE_PERMISSIONS": ["rest_framework.permissions.IsAuthenticated"],
 }

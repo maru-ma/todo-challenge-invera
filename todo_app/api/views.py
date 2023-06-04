@@ -1,7 +1,8 @@
 from rest_framework import generics
 
-from .serializers import TodoItemSerializer, TodoListSerializer
-from todo_app.models import TodoItem, TodoList
+from .serializers import ItemSerializer, TodoListSerializer
+from todo_app.models import Item, TodoList
+
 
 class ListAddTodoList(generics.ListCreateAPIView):
     queryset = TodoList.objects.all()
@@ -13,15 +14,16 @@ class TodoListDetail(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = TodoListSerializer
 
 
-class ListAddTodoItem(generics.ListCreateAPIView):
-    serializer_class = TodoItemSerializer
+class ListAddItem(generics.ListCreateAPIView):
+    serializer_class = ItemSerializer
 
     def get_queryset(self):
         todo_list_pk = self.kwargs["pk"]
-        queryset = TodoItem.objects.filter(todo_list=todo_list_pk).order_by("done")
+        queryset = Item.objects.filter(todo_list=todo_list_pk).order_by("done")
         return queryset
 
-class TodoItemDetail(generics.RetrieveUpdateDestroyAPIView):
-    queryset = TodoItem.objects.all()
-    serialaizer_class = TodoItemSerializer
+
+class ItemDetail(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Item.objects.all()
+    serialaizer_class = ItemSerializer
     lookup_url_kwarg = "item_pk"

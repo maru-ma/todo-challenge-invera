@@ -25,8 +25,5 @@ class AllTasksTodoListOwnerOnly(permissions.BasePermission):
         if request.user.is_superuser:
             return True
 
-        current_todo_list = TodoList.objects.get(pk=view.kwargs.get("pk"))
-        if request.user == current_todo_list.owner:
-            return True
-
-        return False
+        todo_list_id = view.kwargs.get("pk")
+        return TodoList.objects.filter(pk=todo_list_id, owner=request.user).exists()

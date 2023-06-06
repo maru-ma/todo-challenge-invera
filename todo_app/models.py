@@ -3,6 +3,7 @@ import uuid
 from django.conf import settings
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+from django.utils import timezone
 
 
 class TodoList(models.Model):
@@ -21,6 +22,7 @@ class Task(models.Model):
     name = models.CharField(max_length=100)
     done = models.BooleanField(default=False)
     todo_list = models.ForeignKey(TodoList, on_delete=models.CASCADE, related_name="todo_tasks")
+    created = models.DateTimeField(default=timezone.now)
 
     def __str__(self) -> str:
         return self.name

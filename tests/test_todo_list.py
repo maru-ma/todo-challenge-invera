@@ -2,10 +2,10 @@ from datetime import datetime, timedelta
 from unittest import mock
 
 import pytest
-from todo_app.models import User
 from django.urls import reverse
 from rest_framework import status
-from todo_app.models import Task, TodoList
+
+from todo_app.models import Task, TodoList, User
 
 
 @pytest.mark.django_db

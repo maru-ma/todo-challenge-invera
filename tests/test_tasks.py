@@ -1,7 +1,8 @@
 import pytest
-from todo_app.models import User
 from django.urls import reverse
 from rest_framework import status
+
+from todo_app.models import User
 
 
 @pytest.mark.django_db
@@ -200,7 +201,6 @@ def test_duplicate_task_on_list_bad_request(create_user, create_authenticated_cl
     task = create_task("Milk", todo_list)
 
     url = reverse("list-add-tasks", args=[todo_list.id])
-    # import ipdb; ipdb.set_trace()
     data = {"name": "Milk", "done": False}
 
     response = client.post(url, data, format="json")

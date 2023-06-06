@@ -2,7 +2,14 @@ from django.urls import include, path
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 from rest_framework.authtoken.views import obtain_auth_token
 
-from todo_app.api.views import TaskDetail, ListAddTask, ListAddTodoList, TodoListDetail, FilterTodoList, FilterTask
+from todo_app.api.views import (
+    FilterTask,
+    FilterTodoList,
+    ListAddTask,
+    ListAddTodoList,
+    TaskDetail,
+    TodoListDetail,
+)
 
 urlpatterns = [
     path("api-auth/", include("rest_framework.urls", namespace="rest_framework")),

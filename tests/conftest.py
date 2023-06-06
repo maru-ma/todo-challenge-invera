@@ -1,8 +1,7 @@
 import pytest
-from todo_app.models import User
 from rest_framework.test import APIClient
 
-from todo_app.models import TodoList, Task
+from todo_app.models import Task, TodoList, User
 
 
 @pytest.fixture(scope="session")

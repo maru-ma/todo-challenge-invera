@@ -2,11 +2,10 @@ from datetime import datetime, timedelta
 from unittest import mock
 
 import pytest
-from django.contrib.auth.models import User
+from todo_app.models import User
 from django.urls import reverse
 from rest_framework import status
-from rest_framework.test import APIClient
-from todo_app.models import Item, TodoList
+from todo_app.models import Task, TodoList
 
 
 @pytest.mark.django_db
@@ -54,21 +53,21 @@ def test_retrieve_todo_list_by_id(create_user, create_authenticated_client, crea
 
 
 @pytest.mark.django_db
-def test_todo_list_includes_only_corresponding_items(create_user, create_authenticated_client, create_todo_list):
+def test_todo_list_includes_only_corresponding_tasks(create_user, create_authenticated_client, create_todo_list):
     user = create_user()
     client = create_authenticated_client(user)
 
     todo_list = create_todo_list("Super", user)
     another_todo_list = create_todo_list("Books", user)
 
-    Item.objects.create(todo_list=todo_list, name="Eggs", done=False)
-    Item.objects.create(todo_list=another_todo_list, name="The seven sisters", done=False)
+    Task.objects.create(todo_list=todo_list, name="Eggs", done=False)
+    Task.objects.create(todo_list=another_todo_list, name="The seven sisters", done=False)
 
     url = reverse("todo-list-detail", args=[todo_list.id])
     response = client.get(url)
 
-    assert len(response.data["todo_items"]) == 1
-    assert response.data["todo_items"][0]["name"] == "Eggs"
+    assert len(response.data["todo_tasks"]) == 1
+    assert response.data["todo_tasks"][0]["name"] == "Eggs"
 
 
 @pytest.mark.django_db
@@ -210,7 +209,7 @@ def test_correct_order_todo_lists(create_user, create_authenticated_client):
 
 
 @pytest.mark.django_db
-def test_todo_lists_order_changed_when_item_marked_purchased(create_user, create_authenticated_client):
+def test_todo_lists_order_changed_when_task_marked_purchased(create_user, create_authenticated_client):
 
     user = create_user()
     client = create_authenticated_client(user)
@@ -221,19 +220,52 @@ def test_todo_lists_order_changed_when_item_marked_purchased(create_user, create
     with mock.patch("django.utils.timezone.now") as mock_now:
         mock_now.return_value = older_time
         older_list = TodoList.objects.create(name="Older", owner=user)
-        item_on_older_list = Item.objects.create(name="Milk", done=False, todo_list=older_list)
+        task_on_older_list = Task.objects.create(name="Milk", done=False, todo_list=older_list)
 
         mock_now.return_value = more_recent_time
         TodoList.objects.create(name="Recent", updated=datetime.now() - timedelta(days=100), owner=user)
 
-    todo_item_url = reverse("item-detail", kwargs={"pk": older_list.id, "item_pk": item_on_older_list.id})
+    todo_task_url = reverse("task-detail", kwargs={"pk": older_list.id, "task_pk": task_on_older_list.id})
     todo_lists_url = reverse("all-todo-lists")
 
     data = {"done": True}
 
-    client.patch(todo_item_url, data)
+    client.patch(todo_task_url, data)
 
     response = client.get(todo_lists_url)
 
     assert response.data[1]["name"] == "Recent"
     assert response.data[0]["name"] == "Older"
+
+
+@pytest.mark.django_db
+def test_search_archived_todo_lists(create_user, create_authenticated_client):
+    user = create_user()
+    client = create_authenticated_client(user)
+    TodoList.objects.create(name="Super", owner=user)
+    TodoList.objects.create(name="Books", owner=user, archived=True)
+
+    search_param = "?archived=True"
+    url = reverse("filter-todo-lists") + search_param
+
+    response = client.get(url)
+    assert len(response.data) == 1
+    assert response.data[0]["name"] == "Books"
+
+
+@pytest.mark.django_db
+def test_search_returns_only_users_results(create_user, create_authenticated_client, create_todo_list, create_task):
+    user = create_user()
+    client = create_authenticated_client(user)
+    another_user = User.objects.create_user("SomeOtherUser", "someother@user.com", "something")
+
+    todo_list_1 = TodoList.objects.create(name="Books", owner=user, archived=True)
+    create_task("Milk", todo_list_1)
+    todo_list_2 = create_todo_list("Books", another_user)
+    create_task("Milk", todo_list_2)
+
+    search_param = "?archived=True"
+    url = reverse("filter-todo-lists") + search_param
+
+    response = client.get(url)
+    assert len(response.data) == 1

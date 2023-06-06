@@ -1,9 +1,10 @@
-from rest_framework import generics
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import filters, generics, status
+from todo_app.models import Task, TodoList
 
 from .pagination import LargerResultsSetPagination
-from .permissions import AllItemsTodoListOwnerOnly, TodoListOwnerOnly, ItemTodoListOwnerOnly
-from .serializers import ItemSerializer, TodoListSerializer
-from todo_app.models import Item, TodoList
+from .permissions import AllTasksTodoListOwnerOnly, TaskTodoListOwnerOnly, TodoListOwnerOnly
+from .serializers import TaskSerializer, TodoListSerializer
 
 
 class ListAddTodoList(generics.ListCreateAPIView):
@@ -22,18 +23,39 @@ class TodoListDetail(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = [TodoListOwnerOnly]
 
 
-class ListAddItem(generics.ListCreateAPIView):
-    serializer_class = ItemSerializer
-    permission_classes = [AllItemsTodoListOwnerOnly]
+class ListAddTask(generics.ListCreateAPIView):
+    serializer_class = TaskSerializer
+    permission_classes = [AllTasksTodoListOwnerOnly]
     pagination_class = LargerResultsSetPagination
 
     def get_queryset(self):
         todo_list_pk = self.kwargs["pk"]
-        return Item.objects.filter(todo_list=todo_list_pk).order_by("done")
+        return Task.objects.filter(todo_list=todo_list_pk).order_by("done")
 
 
-class ItemDetail(generics.RetrieveUpdateDestroyAPIView):
-    queryset = Item.objects.all()
-    serializer_class = ItemSerializer
-    permission_classes = [ItemTodoListOwnerOnly]
-    lookup_url_kwarg = "item_pk"
+class TaskDetail(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Task.objects.all()
+    serializer_class = TaskSerializer
+    permission_classes = [TaskTodoListOwnerOnly]
+    lookup_url_kwarg = "task_pk"
+
+
+class FilterTodoList(generics.ListAPIView):
+    serializer_class = TodoListSerializer
+    filter_backends = [filters.SearchFilter, filters.OrderingFilter, DjangoFilterBackend]
+    filterset_fields = {"archived": ["exact"], "name": ["icontains"]}
+    search_fields = ["name"]
+
+    def get_queryset(self):
+        return TodoList.objects.filter(owner=self.request.user)
+
+
+class FilterTask(generics.ListAPIView):
+    serializer_class = TaskSerializer
+    filter_backends = [filters.SearchFilter, filters.OrderingFilter, DjangoFilterBackend]
+    filterset_fields = {"done": ["exact"], "name": ["icontains"]}
+    search_fields = ["name"]
+
+    def get_queryset(self):
+        todo_list_pk = self.kwargs["pk"]
+        return Task.objects.filter(todo_list=todo_list_pk)

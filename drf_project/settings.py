@@ -40,6 +40,8 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "rest_framework",
+    "rest_framework.authtoken",
+    "django_filters",
     "todo_app",
     "drf_spectacular",
 ]
@@ -129,9 +131,20 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # Rest framework settings
 REST_FRAMEWORK = {
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "rest_framework.authentication.TokenAuthentication",
+        "rest_framework.authentication.SessionAuthentication",
+    ],
     "DEFAULT_RENDERER_CLASSES": [
         "rest_framework.renderers.JSONRenderer",
     ],
+    "DEFAULT_THROTTLE_CLASSES": [
+        "rest_framework.throttling.AnonRateThrottle",
+        "todo_app.api.throttling.MinuteRateThrottle",
+        "todo_app.api.throttling.DailyRateThrottle",
+    ],
+    "DEFAULT_THROTTLE_RATES": {"anon": "10/hour", "user_day": "10000/day", "user_minute": "200/minute"},
+    "DEFAULT_FILTER_BACKENDS": ["django_filters.rest_framework.DjangoFilterBackend"],
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
 }
 
@@ -139,9 +152,11 @@ REST_FRAMEWORK = {
 # DRF-spectacular settings
 SPECTACULAR_SETTINGS = {
     "TITLE": "Todo App",
-    "DESCRIPTION": "Multiple todo list to enhance your productivity (or your TDAH)",
+    "DESCRIPTION": "Multiple todo list to enhance your productivity.",
     "VERSION": "1.0.0",
     "SERVE_PERMISSIONS": ["rest_framework.permissions.IsAuthenticated"],
     "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
     "PAGE_SIZE": 10,
 }
+
+AUTH_USER_MODEL = "todo_app.User"

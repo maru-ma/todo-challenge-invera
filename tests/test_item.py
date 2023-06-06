@@ -1,18 +1,17 @@
 import pytest
-from django.contrib.auth.models import User
+from todo_app.models import User
 from django.urls import reverse
 from rest_framework import status
-from todo_app.models import Item, TodoList
 
 
 @pytest.mark.django_db
-def test_item_is_retrieved_by_id(create_user, create_authenticated_client, create_todo_list, create_item):
+def test_task_is_retrieved_by_id(create_user, create_authenticated_client, create_todo_list, create_task):
     user = create_user()
     client = create_authenticated_client(user)
     todo_list = create_todo_list("Super", user)
-    item = create_item("Chocolate", todo_list)
+    task = create_task("Chocolate", todo_list)
 
-    url = reverse("item-detail", kwargs={"pk": item.todo_list.id, "item_pk": item.id})
+    url = reverse("task-detail", kwargs={"pk": task.todo_list.id, "task_pk": task.id})
 
     response = client.get(url)
 
@@ -21,14 +20,14 @@ def test_item_is_retrieved_by_id(create_user, create_authenticated_client, creat
 
 
 @pytest.mark.django_db
-def test_not_owner_of_list_can_not_add_item(create_user, create_authenticated_client, create_todo_list):
+def test_not_owner_of_list_can_not_add_task(create_user, create_authenticated_client, create_todo_list):
     user = create_user()
     client = create_authenticated_client(user)
 
     todo_list_owner = User.objects.create_user("Creator", "creator@list.com", "something")
     todo_list = create_todo_list("Super", todo_list_owner)
 
-    url = reverse("list-add-items", args=[todo_list.id])
+    url = reverse("list-add-tasks", args=[todo_list.id])
 
     data = {"name": "Milk", "done": False}
 
@@ -38,11 +37,11 @@ def test_not_owner_of_list_can_not_add_item(create_user, create_authenticated_cl
 
 
 @pytest.mark.django_db
-def test_admin_can_add_items(create_user, create_todo_list, admin_client):
+def test_admin_can_add_tasks(create_user, create_todo_list, admin_client):
     user = create_user()
     todo_list = create_todo_list("Super", user)
 
-    url = reverse("list-add-items", kwargs={"pk": todo_list.id})
+    url = reverse("list-add-tasks", kwargs={"pk": todo_list.id})
 
     data = {"name": "Milk", "done": False}
 
@@ -52,16 +51,16 @@ def test_admin_can_add_items(create_user, create_todo_list, admin_client):
 
 
 @pytest.mark.django_db
-def test_item_detail_access_restricted_if_not_owner_of_todo_list(
-    create_user, create_authenticated_client, create_todo_list, create_item
+def test_task_detail_access_restricted_if_not_owner_of_todo_list(
+    create_user, create_authenticated_client, create_todo_list, create_task
 ):
     user = create_user()
     todo_list_owner = User.objects.create_user("Owner", "owner@todolist.com", "something")
     todo_list = create_todo_list("Super", todo_list_owner)
     client = create_authenticated_client(user)
-    item = create_item("Chocolate", todo_list)
+    task = create_task("Chocolate", todo_list)
 
-    url = reverse("item-detail", kwargs={"pk": item.todo_list.id, "item_pk": item.id})
+    url = reverse("task-detail", kwargs={"pk": task.todo_list.id, "task_pk": task.id})
 
     response = client.get(url, format="json")
 
@@ -69,16 +68,16 @@ def test_item_detail_access_restricted_if_not_owner_of_todo_list(
 
 
 @pytest.mark.django_db
-def test_item_update_restricted_if_not_owner_of_todo_list(
-    create_user, create_authenticated_client, create_todo_list, create_item
+def test_task_update_restricted_if_not_owner_of_todo_list(
+    create_user, create_authenticated_client, create_todo_list, create_task
 ):
     user = create_user()
     todo_list_owner = User.objects.create_user("Creator", "creator@list.com", "something")
     todo_list = create_todo_list("Super", todo_list_owner)
     client = create_authenticated_client(user)
-    item = create_item("Chocolate", todo_list)
+    task = create_task("Chocolate", todo_list)
 
-    url = reverse("item-detail", kwargs={"pk": item.todo_list.id, "item_pk": item.id})
+    url = reverse("task-detail", kwargs={"pk": task.todo_list.id, "task_pk": task.id})
 
     data = {"name": "Chocolate", "done": True}
 
@@ -88,17 +87,17 @@ def test_item_update_restricted_if_not_owner_of_todo_list(
 
 
 @pytest.mark.django_db
-def test_item_partial_update_restricted_if_not_owner_of_todo_list(
-    create_user, create_authenticated_client, create_todo_list, create_item
+def test_task_partial_update_restricted_if_not_owner_of_todo_list(
+    create_user, create_authenticated_client, create_todo_list, create_task
 ):
     user = create_user()
     todo_list_owner = User.objects.create_user("Creator", "creator@list.com", "something")
     client = create_authenticated_client(user)
     todo_list = create_todo_list("Super", todo_list_owner)
 
-    item = create_item("Chocolate", todo_list)
+    task = create_task("Chocolate", todo_list)
 
-    url = reverse("item-detail", kwargs={"pk": item.todo_list.id, "item_pk": item.id})
+    url = reverse("task-detail", kwargs={"pk": task.todo_list.id, "task_pk": task.id})
 
     data = {"done": True}
 
@@ -108,16 +107,16 @@ def test_item_partial_update_restricted_if_not_owner_of_todo_list(
 
 
 @pytest.mark.django_db
-def test_item_delete_restricted_if_not_owner_of_todo_list(
-    create_user, create_authenticated_client, create_todo_list, create_item
+def test_task_delete_restricted_if_not_owner_of_todo_list(
+    create_user, create_authenticated_client, create_todo_list, create_task
 ):
     user = create_user()
     todo_list_owner = User.objects.create_user("Creator", "creator@list.com", "something")
     client = create_authenticated_client(user)
     todo_list = create_todo_list("Super", todo_list_owner)
-    item = create_item("Chocolate", todo_list)
+    task = create_task("Chocolate", todo_list)
 
-    url = reverse("item-detail", kwargs={"pk": item.todo_list.id, "item_pk": item.id})
+    url = reverse("task-detail", kwargs={"pk": task.todo_list.id, "task_pk": task.id})
 
     response = client.delete(url)
 
@@ -125,12 +124,12 @@ def test_item_delete_restricted_if_not_owner_of_todo_list(
 
 
 @pytest.mark.django_db
-def test_admin_can_retrieve_single_item(create_user, create_item, create_todo_list, admin_client):
+def test_admin_can_retrieve_single_task(create_user, create_task, create_todo_list, admin_client):
     user = create_user()
     todo_list = create_todo_list("Super", user)
-    item = create_item("Milk", todo_list)
+    task = create_task("Milk", todo_list)
 
-    url = reverse("item-detail", kwargs={"pk": item.todo_list.id, "item_pk": item.id})
+    url = reverse("task-detail", kwargs={"pk": task.todo_list.id, "task_pk": task.id})
 
     response = admin_client.get(url)
 
@@ -138,33 +137,33 @@ def test_admin_can_retrieve_single_item(create_user, create_item, create_todo_li
 
 
 @pytest.mark.django_db
-def test_list_items_is_retrieved_by_todo_list_member(
-    create_user, create_authenticated_client, create_todo_list, create_item
+def test_list_tasks_is_retrieved_by_todo_list_member(
+    create_user, create_authenticated_client, create_todo_list, create_task
 ):
     user = create_user()
     todo_list = create_todo_list("Fruits", user)
-    item_1 = create_item("Orange", todo_list)
-    item_2 = create_item("Apples", todo_list)
+    task_1 = create_task("Orange", todo_list)
+    task_2 = create_task("Apples", todo_list)
 
     client = create_authenticated_client(user)
-    url = reverse("list-add-items", kwargs={"pk": todo_list.id})
+    url = reverse("list-add-tasks", kwargs={"pk": todo_list.id})
     response = client.get(url)
 
     assert len(response.data["results"]) == 2
-    assert response.data["results"][0]["name"] == item_1.name
-    assert response.data["results"][1]["name"] == item_2.name
+    assert response.data["results"][0]["name"] == task_1.name
+    assert response.data["results"][1]["name"] == task_2.name
 
 
 @pytest.mark.django_db
-def test_not_owner_can_not_retrieve_items(create_user, create_authenticated_client, create_item, create_todo_list):
+def test_not_owner_can_not_retrieve_tasks(create_user, create_authenticated_client, create_task, create_todo_list):
     user_1 = create_user()
     todo_list = create_todo_list("First List", user_1)
 
-    item = create_item("Milk", todo_list)
+    task = create_task("Milk", todo_list)
 
     user = User.objects.create_user("TestUser2", "user2@test.com", "blahblah2")
     client = create_authenticated_client(user)
-    url = reverse("list-add-items", kwargs={"pk": item.todo_list.id})
+    url = reverse("list-add-tasks", kwargs={"pk": task.todo_list.id})
 
     response = client.get(url)
 
@@ -172,40 +171,73 @@ def test_not_owner_can_not_retrieve_items(create_user, create_authenticated_clie
 
 
 @pytest.mark.django_db
-def test_list_items_only_the_ones_belonging_to_the_same_todo_list(
-    create_user, create_authenticated_client, create_todo_list, create_item
+def test_list_tasks_only_the_ones_belonging_to_the_same_todo_list(
+    create_user, create_authenticated_client, create_todo_list, create_task
 ):
     user = create_user()
 
     todo_list = create_todo_list("First List", user)
-    item_from_this_list = create_item("Oranges", todo_list)
+    task_from_this_list = create_task("Oranges", todo_list)
 
     another_todo_list = create_todo_list("Another list!", user)
-    item_from_another_list = create_item("Apples", another_todo_list)
+    task_from_another_list = create_task("Apples", another_todo_list)
 
     client = create_authenticated_client(user)
-    url = reverse("list-add-items", kwargs={"pk": todo_list.id})
+    url = reverse("list-add-tasks", kwargs={"pk": todo_list.id})
 
     response = client.get(url)
 
     assert len(response.data["results"]) == 1
-    assert response.data["results"][0]["name"] == item_from_this_list.name
+    assert response.data["results"][0]["name"] == task_from_this_list.name
 
 
 @pytest.mark.django_db
-def test_duplicate_item_on_list_bad_request(create_user, create_authenticated_client, create_todo_list, create_item):
-
+def test_duplicate_task_on_list_bad_request(create_user, create_authenticated_client, create_todo_list, create_task):
     user = create_user()
     client = create_authenticated_client(user)
 
     todo_list = create_todo_list("Super", user)
-    item = create_item("Milk", todo_list)
+    task = create_task("Milk", todo_list)
 
-    url = reverse("list-add-items", args=[todo_list.id])
+    url = reverse("list-add-tasks", args=[todo_list.id])
 
     data = {"name": "Milk", "done": False}
 
     response = client.post(url, data, format="json")
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
-    assert len(todo_list.todo_items.all()) == 1
+    assert len(todo_list.todo_tasks.all()) == 1
+
+
+@pytest.mark.django_db
+def test_filter_done_tasks(create_user, create_authenticated_client, create_todo_list, create_task):
+    user = create_user()
+    client = create_authenticated_client(user)
+
+    todo_list = create_todo_list("Super", user)
+    undone_task = create_task("Eggs", todo_list)
+    done_task = create_task("Milk", todo_list, True)
+
+    search_param = "?done=True"
+    url = reverse("filter-tasks", kwargs={"pk": todo_list.id}) + search_param
+
+    response = client.get(url)
+    assert len(response.data) == 1
+    assert response.data[0]["name"] == done_task.name
+
+
+@pytest.mark.django_db
+def test_filter_undone_tasks(create_user, create_authenticated_client, create_todo_list, create_task):
+    user = create_user()
+    client = create_authenticated_client(user)
+
+    todo_list = create_todo_list("Super", user)
+    undone_task = create_task("Eggs", todo_list)
+    done_task = create_task("Milk", todo_list, True)
+
+    search_param = "?done=False"
+    url = reverse("filter-tasks", kwargs={"pk": todo_list.id}) + search_param
+
+    response = client.get(url)
+    assert len(response.data) == 1
+    assert response.data[0]["name"] == undone_task.name

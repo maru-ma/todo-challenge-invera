@@ -11,7 +11,7 @@ class TodoListOwnerOnly(permissions.BasePermission):
         return False
 
 
-class ItemTodoListOwnerOnly(permissions.BasePermission):
+class TaskTodoListOwnerOnly(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
         if request.user.is_superuser or (request.user == obj.todo_list.owner):
             return True
@@ -20,7 +20,7 @@ class ItemTodoListOwnerOnly(permissions.BasePermission):
 
 
 # REVISAR
-class AllItemsTodoListOwnerOnly(permissions.BasePermission):
+class AllTasksTodoListOwnerOnly(permissions.BasePermission):
     def has_permission(self, request, view):
         if request.user.is_superuser:
             return True

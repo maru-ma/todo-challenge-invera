@@ -21,7 +21,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.environ.get("SECRET_KEY")
+SECRET_KEY = os.environ.get("SECRET_KEY", default="testsecretkey")
 
 DEBUG = int(os.environ.get("DEBUG", default=0))
 
@@ -141,5 +141,7 @@ SPECTACULAR_SETTINGS = {
     "TITLE": "Todo App",
     "DESCRIPTION": "Multiple todo list to enhance your productivity (or your TDAH)",
     "VERSION": "1.0.0",
-    # "SERVE_PERMISSIONS": ["rest_framework.permissions.IsAuthenticated"],
+    "SERVE_PERMISSIONS": ["rest_framework.permissions.IsAuthenticated"],
+    "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
+    "PAGE_SIZE": 10,
 }

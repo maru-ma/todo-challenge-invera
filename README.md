@@ -1,37 +1,48 @@
-# Invera ToDo-List Challenge (Python/Django Jr-SSr)
+# ToDo-List APP (Python/Django)
 
-El propósito de esta prueba es conocer tu capacidad para crear una pequeña aplicación funcional en un límite de tiempo. A continuación, encontrarás las funciones, los requisitos y los puntos clave que debés tener en cuenta durante el desarrollo.
+### Ejecutar proyecto:
+Es necesario tener instalado docker y docker-compose.
 
-## Qué queremos que hagas:
+```
+$ docker-compose up --build
 
-- El Challenge consiste en crear una aplicación web sencilla que permita a los usuarios crear y mantener una lista de tareas.
-- La entrega del resultado será en un nuevo fork de este repo y deberás hacer una pequeña demo del funcionamiento y desarrollo del proyecto ante un super comité de las más grandes mentes maestras de Invera, o a un par de devs, lo que sea más fácil de conseguir.
-- Podes contactarnos en caso que tengas alguna consulta.
+```
+el proyecto se levanta en http://0.0.0.0:8000/ y la documentacion en http://0.0.0.0:8000/api/docs/
 
-## Objetivos:
+Para probar el proyecto es necesario crear un superuser:
 
-El usuario de la aplicación tiene que ser capaz de:
+```
+$ docker exec -ti todo-app bash
+$ python manage.py createsuperuser
 
-- Autenticarse
-- Crear una tarea
-- Eliminar una tarea
-- Marcar tareas como completadas
-- Poder ver una lista de todas las tareas existentes
-- Filtrar/buscar tareas por fecha de creación y/o por el contenido de la misma
+```
+luego en http://0.0.0.0:8000/api-auth/login/ loguearse como super user, dirigirse a http://0.0.0.0:8000/api/docs/#/users/users_create y crear un usuario.
+O desde postman para testear con Token Auth, obtener token http://0.0.0.0:8000/api-token-auth/
+para ejecutar los tests:
 
-## Qué evaluamos:
+```
+$ docker-compose run --rm todo-app pytest
 
-- Desarrollo utilizando Python, Django. No es necesario crear un Front-End, pero sí es necesario tener una API que permita cumplir con los objetivos de arriba.
-- Uso de librerías y paquetes estandares que reduzcan la cantidad de código propio añadido.
-- Calidad y arquitectura de código. Facilidad de lectura y mantenimiento del código. Estándares seguidos.
-- [Bonus] Manejo de logs.
-- [Bonus] Creación de tests (unitarias y de integración)
-- [Bonus] Unificar la solución propuesta en una imagen de Docker por repositorio para poder ser ejecutada en cualquier ambiente (si aplica para full stack).
+```
 
-## Requerimientos de entrega:
 
-- Hacer un fork del proyecto y pushearlo en github. Puede ser privado.
-- La solución debe correr correctamente.
-- El Readme debe contener todas las instrucciones para poder levantar la aplicación, en caso de ser necesario, y explicar cómo se usa.
-- Disponibilidad para realizar una pequeña demo del proyecto al finalizar el challenge.
-- Tiempo para la entrega: Aproximadamente 7 días.
+#### Entorno de desarrollo:
+
+```
+pip install pre-commit
+pre-commit install
+
+```
+## Tareas de desarrollo y su duración:
+* Diseño de aplicación: eleccion de MVP, modelos, tecnologías me llevó aprox 45min
+* Setup inicial: con Docker, Docker-compose, Django, DRF, PostgreSQL, libs, pre-commits y hooks 1:30hs
+* Modelos, serializadores, vistas y test de vistas: 1:30h
+* Permisos, throttling, auth y adicion/corrección tests: 2hs
+* Filters, paginacion y adicion/corrección tests: 2h
+
+#### Quedan para mejorar y/o agregar:
+* Al testear desde swagger las vistas de busqueda de Task agrega un parametro "search", sin embargo desde postman está ok (ej para probar desde postman con token auth:
+>`http://0.0.0.0:8000/api/todo-lists/badefcc7-c757-452e-b7b3-98df5a78bce0/tasks/filter?done=false`
+`http://0.0.0.0:8000/api/todo-lists/badefcc7-c757-452e-b7b3-98df5a78bce0/tasks/filter?created=2023-06-07`)
+* Mejorar test unitarios y agregar para la creacion de Usuarios.
+* Edición bulk de Task y TodoList.

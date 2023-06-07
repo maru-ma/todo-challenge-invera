@@ -1,13 +1,13 @@
 # ToDo-List APP (Python/Django)
 
 ### Ejecutar proyecto:
-Es necesario tener instalado docker y docker-compose.
+Es necesario tener instalado [docker](https://www.docker.com/) y [docker-compose](https://docs.docker.com/compose/).
 
 ```
 $ docker-compose up --build
 
 ```
-el proyecto se levanta en http://0.0.0.0:8000/ y la documentacion en http://0.0.0.0:8000/api/docs/
+el proyecto se levanta en http://0.0.0.0:8000/ y la documentacion en http://0.0.0.0:8000/api/docs/ .
 
 Para probar el proyecto es necesario crear un superuser:
 
@@ -17,8 +17,8 @@ $ python manage.py createsuperuser
 
 ```
 luego en http://0.0.0.0:8000/api-auth/login/ loguearse como super user, dirigirse a http://0.0.0.0:8000/api/docs/#/users/users_create y crear un usuario.
-O desde postman para testear con Token Auth, obtener token http://0.0.0.0:8000/api-token-auth/
-para ejecutar los tests:
+O desde postman para testear con Token Auth, obtener token http://0.0.0.0:8000/api-token-auth/ .
+#### Para ejecutar los tests:
 
 ```
 $ docker-compose run --rm todo-app pytest

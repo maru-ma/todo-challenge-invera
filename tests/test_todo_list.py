@@ -33,9 +33,9 @@ def test_list_all_todo_lists(create_user, create_authenticated_client, create_to
     response = client.get(url)
 
     assert response.status_code == status.HTTP_200_OK
-    assert len(response.data) == 2
-    assert response.data[0]["name"] == "Books"
-    assert response.data[1]["name"] == "Super"
+    assert len(response.data["results"]) == 2
+    assert response.data["results"][0]["name"] == "Books"
+    assert response.data["results"][1]["name"] == "Super"
 
 
 @pytest.mark.django_db
@@ -67,7 +67,7 @@ def test_todo_list_includes_only_corresponding_tasks(create_user, create_authent
     response = client.get(url)
 
     assert len(response.data["todo_tasks"]) == 1
-    assert response.data["todo_tasks"][0]["name"] == "Eggs"
+    assert response.data["todo_tasks"][0] == "Eggs"
 
 
 @pytest.mark.django_db
@@ -166,8 +166,8 @@ def test_client_retrieves_only_todo_list_of_owner(create_user, create_authentica
     url = reverse("all-todo-lists")
     response = client.get(url)
 
-    assert len(response.data) == 1
-    assert response.data[0]["name"] == "Super"
+    assert len(response.data["results"]) == 1
+    assert response.data["results"][0]["name"] == "Super"
 
 
 @pytest.mark.django_db
@@ -203,13 +203,13 @@ def test_correct_order_todo_lists(create_user, create_authenticated_client):
 
     response = client.get(url)
 
-    assert response.data[0]["name"] == "New"
-    assert response.data[1]["name"] == "Old"
-    assert response.data[2]["name"] == "Oldest"
+    assert response.data["results"][0]["name"] == "New"
+    assert response.data["results"][1]["name"] == "Old"
+    assert response.data["results"][2]["name"] == "Oldest"
 
 
 @pytest.mark.django_db
-def test_todo_lists_order_changed_when_task_marked_purchased(create_user, create_authenticated_client):
+def test_todo_lists_order_changed_when_task_marked_done(create_user, create_authenticated_client):
 
     user = create_user()
     client = create_authenticated_client(user)
@@ -234,8 +234,8 @@ def test_todo_lists_order_changed_when_task_marked_purchased(create_user, create
 
     response = client.get(todo_lists_url)
 
-    assert response.data[1]["name"] == "Recent"
-    assert response.data[0]["name"] == "Older"
+    assert response.data["results"][1]["name"] == "Recent"
+    assert response.data["results"][0]["name"] == "Older"
 
 
 @pytest.mark.django_db

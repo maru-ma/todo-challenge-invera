@@ -148,7 +148,6 @@ REST_FRAMEWORK = {
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
 }
 
-
 # DRF-spectacular settings
 SPECTACULAR_SETTINGS = {
     "TITLE": "Todo App",

@@ -2,7 +2,37 @@ import pytest
 from django.urls import reverse
 from rest_framework import status
 
-from todo_app.models import User
+from todo_app.models import User, Task
+
+
+@pytest.mark.django_db
+def test_valid_task_is_created(create_user, create_authenticated_client, create_todo_list):
+    user = create_user()
+    todo_list = create_todo_list("Study", user)
+
+    url = reverse("list-add-tasks", args=[todo_list.id])
+
+    data = {"name": "AWS", "done": False}
+    client = create_authenticated_client(user)
+    response = client.post(url, data, format="json")
+
+    assert response.status_code == status.HTTP_201_CREATED
+
+
+@pytest.mark.django_db
+def test_create_task_missing_data_returns_bad_request(create_user, create_authenticated_client, create_todo_list):
+    user = create_user()
+    todo_list = create_todo_list("Study", user)
+
+    url = reverse("list-add-tasks", args=[todo_list.id])
+
+    data = {
+        "done": "False",
+    }
+    client = create_authenticated_client(user)
+    response = client.post(url, data, format="json")
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
 
 
 @pytest.mark.django_db
@@ -18,6 +48,55 @@ def test_task_is_retrieved_by_id(create_user, create_authenticated_client, creat
 
     assert response.status_code == status.HTTP_200_OK
     assert response.data["name"] == "Chocolate"
+
+
+@pytest.mark.django_db
+def test_update_task_done_status(create_user, create_authenticated_client, create_todo_list, create_task):
+    user = create_user()
+    client = create_authenticated_client(user)
+    todo_list = create_todo_list("Study", user)
+    task = create_task("AWS", todo_list)
+
+    url = reverse("task-detail", kwargs={"pk": todo_list.id, "task_pk": task.id})
+
+    data = {"name": "AWS", "done": True}
+    response = client.put(url, data, format="json")
+
+    assert response.status_code == status.HTTP_200_OK
+    assert Task.objects.get().done is True
+
+
+@pytest.mark.django_db
+def test_update_task_done_status_with_missing_data_returns_bad_request(
+    create_user, create_authenticated_client, create_todo_list, create_task
+):
+    user = create_user()
+    client = create_authenticated_client(user)
+    todo_list = create_todo_list("Study", user)
+    task = create_task("AWS", todo_list)
+
+    url = reverse("task-detail", kwargs={"pk": todo_list.id, "task_pk": task.id})
+
+    data = {"adse": True}
+    response = client.put(url, data, format="json")
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+
+@pytest.mark.django_db
+def test_update_task_name_with_partial_update(create_user, create_authenticated_client, create_todo_list, create_task):
+    user = create_user()
+    client = create_authenticated_client(user)
+    todo_list = create_todo_list("Study", user)
+    task = create_task("AWS", todo_list)
+
+    url = reverse("task-detail", kwargs={"pk": todo_list.id, "task_pk": task.id})
+
+    data = {"name": "Docker"}
+    response = client.patch(url, data, format="json")
+
+    assert response.status_code == status.HTTP_200_OK
+    assert Task.objects.get().name == "Docker"
 
 
 @pytest.mark.django_db
@@ -37,18 +116,18 @@ def test_not_owner_of_list_can_not_add_task(create_user, create_authenticated_cl
     assert response.status_code == status.HTTP_403_FORBIDDEN
 
 
-# @pytest.mark.django_db
-# def test_admin_can_add_tasks(create_user, create_todo_list, admin_client):
-#     user = create_user()
-#     todo_list = create_todo_list("Super", user)
+@pytest.mark.django_db
+def test_admin_can_add_tasks(create_user, create_todo_list, admin_client):
+    user = create_user()
+    todo_list = create_todo_list("Super", user)
 
-#     url = reverse("list-add-tasks", kwargs={"pk": todo_list.id})
+    url = reverse("list-add-tasks", kwargs={"pk": todo_list.id})
 
-#     data = {"name": "Milk", "done": False}
+    data = {"name": "Milk", "done": False}
 
-#     response = admin_client.post(url, data, format="json")
+    response = admin_client.post(url, data, format="json")
 
-#     assert response.status_code == status.HTTP_201_CREATED
+    assert response.status_code == status.HTTP_201_CREATED
 
 
 @pytest.mark.django_db

@@ -49,7 +49,7 @@ class TaskSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data, **kwargs):
         """Validates that a Task can't be duplicated in the same todo list."""
-        todo_list_id = self.context["view"].kwargs["pk"]
+        todo_list_id = self.context["view"].kwargs["todo_list_pk"]
 
         if Task.objects.filter(todo_list_id=todo_list_id, name=validated_data["name"]).exists():
             raise serializers.ValidationError("This task is already on the list!")

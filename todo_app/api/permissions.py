@@ -55,7 +55,10 @@ class AllTasksTodoListOwnerOnly(permissions.BasePermission):
     """
 
     def has_permission(self, request, view):
-        if request.user.is_superuser or TodoList.objects.filter(pk=view.kwargs.get("pk"), owner=request.user).exists():
+        if (
+            request.user.is_superuser
+            or TodoList.objects.filter(pk=view.kwargs.get("todo_list_pk"), owner=request.user).exists()
+        ):
             return True
 
         raise PermissionDenied("You do not have permission to access this view.")

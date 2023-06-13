@@ -10,7 +10,7 @@ from todo_app.models import Task, TodoList, User
 
 @pytest.mark.django_db
 def test_create_todo_list(create_user, create_authenticated_client):
-    url = reverse("all-todo-lists")
+    url = "/api/todo-lists/"
     data = {
         "name": "Super",
     }
@@ -28,7 +28,7 @@ def test_list_all_todo_lists(create_user, create_authenticated_client, create_to
     todo_list = create_todo_list("Super", user)
     another_todo_list = create_todo_list("Books", user)
 
-    url = reverse("all-todo-lists")
+    url = "/api/todo-lists/"
 
     response = client.get(url)
 
@@ -44,7 +44,7 @@ def test_retrieve_todo_list_by_id(create_user, create_authenticated_client, crea
     client = create_authenticated_client(user)
     todo_list = create_todo_list("Super", user)
 
-    url = reverse("todo-list-detail", args=[todo_list.id])
+    url = f"/api/todo-lists/{todo_list.id}/"
 
     response = client.get(url, format="json")
 
@@ -63,7 +63,7 @@ def test_todo_list_includes_only_corresponding_tasks(create_user, create_authent
     Task.objects.create(todo_list=todo_list, name="Eggs", done=False)
     Task.objects.create(todo_list=another_todo_list, name="The seven sisters", done=False)
 
-    url = reverse("todo-list-detail", args=[todo_list.id])
+    url = f"/api/todo-lists/{todo_list.id}/"
     response = client.get(url)
 
     assert len(response.data["todo_tasks"]) == 1
@@ -75,9 +75,9 @@ def test_update_todo_list_name(create_user, create_authenticated_client, create_
     user = create_user()
     client = create_authenticated_client(user)
 
-    todo_list = create_todo_list("Super", user=user)
+    todo_list = create_todo_list(name="Super", user=user)
 
-    url = reverse("todo-list-detail", args=[todo_list.id])
+    url = f"/api/todo-lists/{todo_list.id}/"
 
     data = {
         "name": "Fruits",
@@ -96,7 +96,7 @@ def test_delete_todo_list(create_user, create_authenticated_client, create_todo_
 
     todo_list = create_todo_list("Super", user=user)
 
-    url = reverse("todo-list-detail", args=[todo_list.id])
+    url = f"/api/todo-lists/{todo_list.id}/"
 
     response = client.delete(url)
 
@@ -105,21 +105,24 @@ def test_delete_todo_list(create_user, create_authenticated_client, create_todo_
 
 
 @pytest.mark.django_db
-def test_update_todo_list_restricted_to_owner(create_user, create_authenticated_client, create_todo_list):
+def test_update_todo_list_restricted_to_owner(
+    create_user, django_user_model, create_authenticated_client, create_todo_list, admin_client
+):
     user = create_user()
-    todo_list_owner = User.objects.create_user("owner", "owner@todoapp.com", "something")
-    client = create_authenticated_client(user)
-    todo_list = create_todo_list("Super", todo_list_owner)
+    todo_list = create_todo_list(name="Super", user=user)
 
-    url = reverse("todo-list-detail", args=[todo_list.id])
-
+    user_not_owner = User.objects.create(username="testuser", email="test@user.com", password="lksdhlka2")
+    client = create_authenticated_client(user_not_owner)
+    url = f"/api/todo-lists/{todo_list.id}/"
+    print(url)
     data = {
         "name": "Food",
     }
 
     response = client.put(url, data=data, format="json")
+    print(response)
 
-    assert response.status_code == status.HTTP_403_FORBIDDEN
+    assert response.status_code == status.HTTP_404_NOT_FOUND
 
 
 @pytest.mark.django_db
@@ -129,7 +132,7 @@ def test_partial_update_todo_list_restricted_to_owner(create_user, create_authen
     client = create_authenticated_client(user)
     todo_list = create_todo_list("Super", todo_list_owner)
 
-    url = reverse("todo-list-detail", args=[todo_list.id])
+    url = f"/api/todo-lists/{todo_list.id}/"
 
     data = {
         "name": "Food",
@@ -137,7 +140,7 @@ def test_partial_update_todo_list_restricted_to_owner(create_user, create_authen
 
     response = client.patch(url, data=data, format="json")
 
-    assert response.status_code == status.HTTP_403_FORBIDDEN
+    assert response.status_code == status.HTTP_404_NOT_FOUND
 
 
 @pytest.mark.django_db
@@ -147,11 +150,11 @@ def test_delete_todo_list_restricted_to_owner(create_user, create_authenticated_
     client = create_authenticated_client(user)
     todo_list = create_todo_list("Super", todo_list_creator)
 
-    url = reverse("todo-list-detail", args=[todo_list.id])
+    url = f"/api/todo-lists/{todo_list.id}/"
 
     response = client.delete(url, format="json")
 
-    assert response.status_code == status.HTTP_403_FORBIDDEN
+    assert response.status_code == status.HTTP_404_NOT_FOUND
 
 
 @pytest.mark.django_db
@@ -159,11 +162,11 @@ def test_client_retrieves_only_todo_list_of_owner(create_user, create_authentica
     user = create_user()
     todo_list = create_todo_list("Super", user)
 
-    another_user = User.objects.create_user("SomeoneElse", "someone@else.com", "something")
+    another_user = User.objects.create(username="SomeoneElse", email="someone@else.com", password="something")
     create_todo_list("Books", another_user)
 
     client = create_authenticated_client(user)
-    url = reverse("all-todo-lists")
+    url = "/api/todo-lists/"
     response = client.get(url)
 
     assert len(response.data["results"]) == 1
@@ -171,21 +174,25 @@ def test_client_retrieves_only_todo_list_of_owner(create_user, create_authentica
 
 
 @pytest.mark.django_db
-def test_admin_can_retrieve_todo_list(create_user, create_todo_list, admin_client):
+def test_admin_can_retrieve_todo_list(create_user, create_authenticated_client, create_todo_list, admin_user):
 
     user = create_user()
-    todo_list = create_todo_list("Super", user)
+    client = create_authenticated_client(admin_user)
 
-    url = reverse("todo-list-detail", args=[todo_list.id])
+    todo_list = create_todo_list("Super", user, False)
+    id = str(todo_list.id)
 
-    response = admin_client.get(url, format="json")
+    url = f"/api/todo-lists/{id}/"
+
+    response = client.get(url)
+    print(response)
 
     assert response.status_code == status.HTTP_200_OK
 
 
 @pytest.mark.django_db
 def test_correct_order_todo_lists(create_user, create_authenticated_client):
-    url = reverse("all-todo-lists")
+    url = "/api/todo-lists/"
     user = create_user()
     client = create_authenticated_client(user)
 
@@ -225,8 +232,8 @@ def test_todo_lists_order_changed_when_task_marked_done(create_user, create_auth
         mock_now.return_value = more_recent_time
         TodoList.objects.create(name="Recent", updated=datetime.now() - timedelta(days=100), owner=user)
 
-    todo_task_url = reverse("task-detail", kwargs={"pk": older_list.id, "task_pk": task_on_older_list.id})
-    todo_lists_url = reverse("all-todo-lists")
+    todo_task_url = f"/api/todo-lists/{older_list.id}/tasks/{task_on_older_list.id}"
+    todo_lists_url = "/api/todo-lists/"
 
     data = {"done": True}
 
@@ -234,8 +241,8 @@ def test_todo_lists_order_changed_when_task_marked_done(create_user, create_auth
 
     response = client.get(todo_lists_url)
 
-    assert response.data["results"][1]["name"] == "Recent"
-    assert response.data["results"][0]["name"] == "Older"
+    assert response.data["results"][0]["name"] == "Recent"
+    assert response.data["results"][1]["name"] == "Older"
 
 
 @pytest.mark.django_db

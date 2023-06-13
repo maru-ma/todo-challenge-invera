@@ -30,7 +30,7 @@ class FilterTask(generics.ListAPIView):
     serializer_class = TaskSerializer
     permission_classes = [TaskTodoListOwnerOnly]
     filter_backends = [filters.SearchFilter, filters.OrderingFilter, DjangoFilterBackend]
-    filterset_fields = {"done": ["exact"], "name": ["icontains"]}
+    filterset_fields = {"done": ["exact"], "name": ["exact"]}
     search_fields = ["name", "done"]
     filterset_class = TaskFilterSet
 

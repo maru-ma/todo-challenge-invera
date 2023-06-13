@@ -37,7 +37,7 @@ class FilterTodoList(generics.ListAPIView):
     serializer_class = TodoListSerializer
     permission_classes = [TodoListOwnerOnly]
     filter_backends = [filters.SearchFilter, filters.OrderingFilter, DjangoFilterBackend]
-    filterset_fields = {"archived": ["exact"], "name": ["icontains"]}
+    filterset_fields = {"archived": ["exact"], "name": ["exact"]}
     search_fields = ["name"]
 
     def get_queryset(self):

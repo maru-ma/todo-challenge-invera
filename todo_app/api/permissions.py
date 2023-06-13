@@ -17,6 +17,7 @@ class TodoListOwnerOnly(permissions.BasePermission):
     """
 
     def has_object_permission(self, request, view, obj):
+        print(obj.owner)
         if request.user.is_superuser or (request.user == obj.owner):
             return True
 
@@ -39,7 +40,7 @@ class TaskTodoListOwnerOnly(permissions.BasePermission):
         if request.user.is_superuser or (request.user == obj.todo_list.owner):
             return True
 
-        raise PermissionDenied("You do not have permission to access this Task.")
+        raise PermissionDenied({"detail": "You do not have permission to access this TodoList."})
 
 
 class AllTasksTodoListOwnerOnly(permissions.BasePermission):

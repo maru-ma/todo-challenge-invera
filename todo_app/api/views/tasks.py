@@ -1,6 +1,5 @@
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, generics, viewsets
-from rest_framework.response import Response
 from todo_app.models import Task
 
 from ..filtersets import TaskFilterSet
@@ -11,7 +10,7 @@ from ..serializers import TaskSerializer
 
 class TaskViewSet(viewsets.ModelViewSet):
     """
-    Get or create tasks for a specific todo list, ordered by done status.
+    CRUD for tasks for a specific todo list, ordered by done status.
     """
 
     serializer_class = TaskSerializer

@@ -21,7 +21,7 @@ def test_call_with_token_authentication():
     token = token_response.data["token"]
 
     # Make a request to an endpoint with token authentication
-    url = reverse("all-todo-lists")
+    url = "/api/todo-lists/"
     client.credentials(HTTP_AUTHORIZATION=f"Token {token}")
     response = client.get(url)
 
